@@ -32,6 +32,7 @@
 `Motion Detection -> Motion Gap -> 5 seconds`  
 `Motion Detection -> Mask(ON) -> Mask Type -> Editable -> Edit Mask`
 9. Включаем режим отправки уведомлений на эл. почту:  
+*!!!Разрешить в Google аккаунте сторонние приложения: [ссылка](https://myaccount.google.com/lesssecureapps)*  
 `Motion Notifications -> Send An Email`  
 `Email Addresses: <mail>@gmail.com`  
 `SMTP Server: smtp.gmail.com`  
