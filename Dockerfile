@@ -1,47 +1,73 @@
-  GNU nano 5.4                                                                                                      Dockerfile                                                                                                               
-FROM debian:bullseye-slim
+FROM multiarch/debian-debootstrap:armhf-buster
 LABEL maintainer="Marcus Klein <himself@kleini.org>"
 
-# By default, run as root
-ARG RUN_UID=0
-ARG RUN_GID=0
+ARG BUILD_DATE
+ARG VCS_REF
+LABEL org.label-schema.build-date=$BUILD_DATE \
+    org.label-schema.docker.dockerfile="extra/Dockerfile" \
+    org.label-schema.license="GPLv3" \
+    org.label-schema.name="motioneye" \
+    org.label-schema.url="https://github.com/ccrisan/motioneye/wiki" \
+    org.label-schema.vcs-ref=$VCS_REF \
+    org.label-schema.vcs-type="Git" \
+    org.label-schema.vcs-url="https://github.com/ccrisan/motioneye.git"
 
-COPY ./motioneye /tmp/motioneye
-COPY ./motioneye/docker/entrypoint.sh /entrypoint.sh
+COPY . /tmp/motioneye
+ENV LD_LIBRARY_PATH /opt/vc/lib
 
-RUN case "$(dpkg --print-architecture)" in \
-      'armhf') PACKAGES='python3-distutils'; printf '%b' '[global]\nextra-index-url=https://www.piwheels.org/simple/\n' > /etc/pip.conf;; \
-      *) PACKAGES='gcc libcurl4-openssl-dev libssl-dev python3-dev';; \
-    esac && \
-    apt-get -q update && \
-    apt-get install libatlas-base-dev -y && \
-    DEBIAN_FRONTEND="noninteractive" apt-get -qq --option Dpkg::Options::="--force-confnew" --no-install-recommends install \
-      ca-certificates curl python3 $PACKAGES && \
-    curl -sSfO 'https://bootstrap.pypa.io/get-pip.py' && \
-    python3 get-pip.py && \
-    python3 -m pip install --no-cache-dir --upgrade pip setuptools wheel && \
-    # Change uid/gid of user/group motion to match our desired IDs. This will
-    # make it easier to use execute motion as our desired user later.
-    sed -i "s/^\(motion:[^:]*\):[0-9]*:[0-9]*:\(.*\)/\1:${RUN_UID}:${RUN_GID}:\2/" /etc/passwd && \
-    sed -i "s/^\(motion:[^:]*\):[0-9]*:\(.*\)/\1:${RUN_GID}:\2/" /etc/group && \
-    python3 -m pip install --no-cache-dir /tmp/motioneye && \
-    motioneye_init --skip-systemd --skip-apt-update && \
-    mv /etc/motioneye/motioneye.conf /etc/motioneye.conf.sample && \
-    mkdir /var/log/motioneye /var/lib/motioneye && \
-    chown motion:motion /var/log/motioneye /var/lib/motioneye && \
-    # Cleanup
-    python3 -m pip uninstall -y pip setuptools wheel && \
-    DEBIAN_FRONTEND="noninteractive" apt-get -qq autopurge $PACKAGES && \
-    apt-get clean && \
-    rm -r /var/lib/apt/lists /var/cache/apt /tmp/motioneye get-pip.py /root/.cache
+RUN apt-get update && \
+    apt-get upgrade --yes && \
+    DEBIAN_FRONTEND="noninteractive" apt-get --yes --option Dpkg::Options::="--force-confnew" --no-install-recommends install \
+    curl \
+    ffmpeg \
+    git \
+    libmariadb3 \
+    libatlas-base-dev \
+    libmicrohttpd12 \
+    libpq5 \
+    lsb-release \
+    mosquitto-clients \
+    python-jinja2 \
+    python-pil \
+    python-pip \
+    python-pycurl \
+    python-setuptools \
+    python-tornado \
+    python-tz \
+    python-wheel \
+    tzdata \
+    v4l-utils \
+    zlib1g-dev && \
+    git clone --depth 1 https://github.com/Hexxeh/rpi-firmware.git /tmp/rpi-firmware && \
+    cp -rv /tmp/rpi-firmware/vc/hardfp/opt/vc /opt && \
+    rm -rf /tmp/rpi-firmware && \
+    ln -sf /opt/vc/bin/vcgencmd /usr/bin/vcgencmd && \
+    curl -L --output /tmp/motion.deb https://github.com/Motion-Project/motion/releases/download/release-4.4.0/pi_buster_motion_4.4.0-1_armhf.deb && \
+    dpkg -i /tmp/motion.deb && \
+    rm /tmp/motion.deb && \
+    pip install /tmp/motioneye && \
+    rm -rf /tmp/motioneye && \
+    apt-get purge --yes \
+    git \
+    python-pip \
+    python-setuptools \
+    python-wheel && \
+    apt-get autoremove --yes && \
+    apt-get --yes clean && rm -rf /var/lib/apt/lists/* && rm -f /var/cache/apt/*.bin
 
-RUN chown motion:motion /var/run /var/log /var/lib /dev /etc /var
-# R/W needed for motionEye to update configurations
+# R/W needed for motioneye to update configurations
 VOLUME /etc/motioneye
+
+# PIDs
+VOLUME /var/run/motion
 
 # Video & images
 VOLUME /var/lib/motioneye
 
-EXPOSE 8765
+ADD extra/motioneye.conf.sample /usr/share/motioneye/extra/
 
-ENTRYPOINT ["/entrypoint.sh"]
+CMD test -e /etc/motioneye/motioneye.conf || \    
+    cp /usr/share/motioneye/extra/motioneye.conf.sample /etc/motioneye/motioneye.conf ; \
+    /usr/local/bin/meyectl startserver -c /etc/motioneye/motioneye.conf
+
+EXPOSE 8765
