@@ -51,3 +51,4 @@
 5. Удаление определенного контейнера: `docker rm <CONTAINER_ID>`
 6. Остановка всех контейнеров: `docker stop $(docker ps -a -q)`
 7. Удаление всех контейнеров: `docker rm $(docker ps -a -q)`
+8. Удаление образов, контейнеров, кэша и т.д.: `docker system prune`
