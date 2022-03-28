@@ -44,9 +44,10 @@
 `Attached Pictures Time Span: 5`  
 
 # Несколько полезных команд Docker'a
-1. Первоначальный запуск контейнера: `docker run <image> <other commands>`
-2. Остановка определенного контейнера: `docker stop <CONTAINER_ID>`
-3. Запуск определенного контейнера после остановки: `docker start <CONTAINER_ID>`
-4. Удаление определенного контейнера: `docker rm <CONTAINER_ID>`
-5. Остановка всех контейнеров: `docker stop $(docker ps -a -q)`
-6. Удаление всех контейнеров: `docker rm $(docker ps -a -q)`
+1. Собрать свой образ (необходим только Dockerfile): `docker build -t my_motioneye .`
+2. Первоначальный запуск контейнера: `docker run <image> <other commands>`
+3. Остановка определенного контейнера: `docker stop <CONTAINER_ID>`
+4. Запуск определенного контейнера после остановки: `docker start <CONTAINER_ID>`
+5. Удаление определенного контейнера: `docker rm <CONTAINER_ID>`
+6. Остановка всех контейнеров: `docker stop $(docker ps -a -q)`
+7. Удаление всех контейнеров: `docker rm $(docker ps -a -q)`
