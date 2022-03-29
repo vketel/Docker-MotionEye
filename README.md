@@ -49,6 +49,7 @@
 3. Остановка определенного контейнера: `docker stop <CONTAINER_ID>`
 4. Запуск определенного контейнера после остановки: `docker start <CONTAINER_ID>`
 5. Удаление определенного контейнера: `docker rm <CONTAINER_ID>`
-6. Остановка всех контейнеров: `docker stop $(docker ps -a -q)`
-7. Удаление всех контейнеров: `docker rm $(docker ps -a -q)`
-8. Удаление образов, контейнеров, кэша и т.д.: `docker system prune`
+6. Удаление определенного образа: `docker rmi <CONTAINER_ID>`
+7. Остановка всех контейнеров: `docker stop $(docker ps -a -q)`
+8. Удаление всех контейнеров: `docker rm $(docker ps -a -q)`
+9. Удаление образов, контейнеров, кэша и т.д.: `docker system prune`
